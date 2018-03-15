@@ -1,103 +1,163 @@
 import React, { Component } from 'react'
-import { AUTH_TOKEN } from '../constants'
+import { AUTH_TOKEN, EMAIL } from '../constants'
 
 import gql from 'graphql-tag';
 import { graphql, compose } from 'react-apollo';
 
-import PropTypes from 'prop-types';
 import { withStyles } from 'material-ui/styles';
-import MenuItem from 'material-ui/Menu/MenuItem';
 import TextField from 'material-ui/TextField';
 import Button from 'material-ui/Button';
 
-import Paper from 'material-ui/Paper';
-import Grid from 'material-ui/Grid';
+import Typography from 'material-ui/Typography';
 
 const styles = theme => ({
   container: {
     display: 'flex',
-    flexWrap: 'wrap',
+    flexDirection: 'column',
+    alignItems: 'center',
+    height: '100vh',
+  },
+  textField2: {
+    width: 300,
+    margin: theme.spacing.unit,
+    marginTop: theme.spacing.unit * 5,
   },
   textField: {
-    marginLeft: theme.spacing.unit,
-    marginRight: theme.spacing.unit,
-    width: 200,
+    width: 300,
+    margin: theme.spacing.unit,
   },
   button: {
-    marginLeft: theme.spacing.unit,
-    marginRight: theme.spacing.unit,
-    width: 200,
+    width: 300,
+    margin: theme.spacing.unit * 5,
   },
-  paper: {
-    padding: theme.spacing.unit * 4,
-    textAlign: 'center',
-    color: theme.palette.text.secondary,
-    marginTop: theme.spacing.unit,
-    marginLeft: theme.spacing.unit,
-    marginRight: theme.spacing.unit,
-    height: '77vh',
-  },
-  menu: {
-    width: 200,
+  link: {
+    width: 300,
+    margin: theme.spacing.unit,
   },
 });
 
 class Login extends Component {
-  state = {
-    login: true, // switch between Login and SignUp
-    email: '',
-    password: '',
-    password_confirmation: '',
+  constructor(props) {
+    super(props);
+    this.state = {
+      login: true, // switch between Login and SignUp
+      email: '',
+      password: '',
+      password_confirmation: '',
+      message: '',
+      emailError: false,
+      emailLabel: '',
+      passwordsError: false,
+      passwordsLabel: '',
+    }
   }
   render() {
     const { classes } = this.props
+
     return(
-      <Paper className={classes.paper}>
-        <form className={classes.container} noValidate autoComplete="off">
+      <form className={classes.container} >
+        <TextField
+          id="email"
+          label={`Email ${this.state.emailLabel}`}
+          className={classes.textField2}
+          value={this.state.email.value}
+          onChange={ event => {
+            this.setState({ email: event.target.value });
+          }}
+          onFocus={() => this._clearValidations()}
+          margin="normal"
+          error={this.state.emailError}
+        />
+        <TextField
+          id="password"
+          label={`Password ${this.state.passwordsLabel}`}
+          type="password"
+          className={classes.textField}
+          value={this.state.password.value}
+          onChange={event => this.setState({ password: event.target.value })}
+          margin="normal"
+          error={this.state.passwordsError}
+        />
+
+        {!this.state.login && (
           <TextField
-            id="email"
-            label="Email"
+            id="password_confirmation"
+            label="Password Confirmation"
             className={classes.textField}
-            value={this.state.email}
-            onChange={e => this.setState({ email: e.target.value })}
+            type="password"
+            value={this.state.password_confirmation.value}
+            onChange={event => this.setState({ password_confirmation: event.target.value })}
+            onFocus={() => this._clearValidations()}
             margin="normal"
+            error={this.state.passwordsError}
           />
-          <TextField
-            id="password"
-            label="Password"
-            // type="password"
-            className={classes.textField}
-            value={this.state.password}
-            onChange={e => this.setState({ password: e.target.value })}
-            margin="normal"
-          />
-          {!this.state.login && (
-            <TextField
-              id="password_confirmation"
-              label="Password confirmation"
-              className={classes.textField}
-              // type="password"
-              value={this.state.password_confirmation}
-              onChange={e => this.setState({ password_confirmation: e.target.value })}
-              margin="normal"
-            />
-          )}
-          <Button size="small" color="primary" className={classes.button} onClick={() => this._confirm()}>
-            {this.state.login ? 'login' : 'create account'}
-          </Button>
-        </form>
-        <Button size="small" className={classes.button} onClick={() => this.setState({ login: !this.state.login })}>
+        )}
+        <Typography variant="caption" gutterBottom align="center">
+          {this.state.message}
+        </Typography>
+        <Button size="medium" type='submit' variant="raised" color="primary" className={classes.button} onClick={(event) => this._confirm(event)}>
+          {this.state.login ? 'login' : 'create account'}
+        </Button>
+        <Button size="small" className={classes.link} onClick={() => this._switch()}>
           {this.state.login
             ? 'need to create an account?'
             : 'already have an account?'}
         </Button>
-      </Paper>
+      </form>
     )
   }
 
-  _confirm = async () => {
+  _switch = () => {
+    this.setState({ login: !this.state.login });
+    this._clearValidations();
+  }
+
+  _clearValidations = () => {
+    this.setState({
+      emailError: false,
+      emailLabel: '',
+      passwordsError: false,
+      message: '',
+    })
+  }
+
+  _invalidEmail = (message) => {
+    this.setState({ emailError: true, emailLabel: message});
+  }
+
+  _invalidPasswords = (message) => {
+    this.setState({ passwordsError: true, passwordsLabel: message});
+  }
+
+  _validateEmail = (email) => {
+    var re = /^([A-Za-z0-9_\-.])+@([A-Za-z0-9_\-.])+\.([A-Za-z]{2,4})$/;
+    return re.test(String(email).toLowerCase());
+  }
+
+  _confirm = async (event) => {
+    event.preventDefault();
     const { email, password, password_confirmation } = this.state
+
     if (this.state.login) {
+
+      // ******** Email and password validation *********
+      if (email === '') {
+        document.getElementById('email').focus();
+        return
+      }
+      const valid = this._validateEmail(email);
+
+      if (!valid) {
+        this._invalidEmail("Must be valid format")
+        return
+      }
+
+      if (password === '') {
+        document.getElementById('password').focus();
+        return
+      }
+
+      // ************************************************
       const result = await this.props.loginMutation({
         variables: {
           email,
@@ -105,10 +165,55 @@ class Login extends Component {
         },
       })
 
-      const { token } = result.data.login
-      this._saveUserData(token)
+      const { token, user } = result.data.signIn;
+
+      if (token) {
+        this._saveUserToken(token);
+        this._saveUserEmail(user.email);
+        this.props.history.goBack();
+      } else {
+        this.setState({
+          emailError: true,
+          passwordsError: true,
+        });
+      }
 
     } else {
+
+      // ******** Email and password validation *********
+      if (email === '') {
+        document.getElementById('email').focus();
+        return
+      }
+      const valid = this._validateEmail(email);
+
+      if (!valid) {
+        this._invalidEmail("Must be valid format");
+        return
+      }
+
+      if (password === '') {
+        document.getElementById('password').focus();
+        return
+      }
+
+      if (password.length < 6) {
+        this._invalidPasswords("Must be more than 6 characters");
+        return
+      }
+
+      if (password_confirmation === '') {
+        document.getElementById('password_confirmation').focus();
+        return
+      }
+
+      if (password !== password_confirmation) {
+        this._invalidPasswords("and Confirmation must be equal !");
+        return
+      }
+
+      // ************************************************
+
       const result = await this.props.signupMutation({
         variables: {
           email,
@@ -117,19 +222,28 @@ class Login extends Component {
         },
       })
 
-      const { token } = result.data.signup
-      this._saveUserData(token)
-
+      const { token, message } = result.data.signup;
+      if (token) {
+        this._saveTokenData(token);
+        this.props.history.push(`/`);
+      } else {
+        this.setState({
+          message
+        })
+      }
     }
-    this.props.history.push(`/`)
   }
 
-  _saveUserData = token => {
+  _saveUserEmail = email => {
+    localStorage.setItem(EMAIL, email)
+  }
+
+  _saveUserToken = token => {
     localStorage.setItem(AUTH_TOKEN, token)
   }
 }
 
-const SIGNUP_MUTATION = gql`
+const SIGN_UP_MUTATION = gql`
   mutation SignUpMutation($email: String!, $password: String!, $password_confirmation: String!) {
     signup(email: {
       email: $email
@@ -137,22 +251,26 @@ const SIGNUP_MUTATION = gql`
       password_confirmation: $password_confirmation
     }) {
       token
+      message
     }
   }
 `
 
-const LOGIN_MUTATION = gql`
-  mutation LoginMutation($email: String!, $password: String!) {
-    login(email: {
+const SIGN_IN_MUTATION = gql`
+  mutation SignInMutation($email: String!, $password: String!) {
+    signIn(input: {
       email: $email
       password: $password
     }) {
       token
+      user {
+        email
+      }
     }
   }
 `
 
 export default compose(
-  graphql(SIGNUP_MUTATION, { name: 'signupMutation' }),
-  graphql(LOGIN_MUTATION, { name: 'loginMutation' }),
+  graphql(SIGN_UP_MUTATION, { name: 'signupMutation' }),
+  graphql(SIGN_IN_MUTATION, { name: 'loginMutation' }),
 )(withStyles(styles)(Login))

@@ -1,11 +1,12 @@
 import React, { Component } from "react";
-import Input from 'material-ui/Input';
-import { FormControl } from 'material-ui/Form';
+import TextField from 'material-ui/TextField';
 import { withStyles } from 'material-ui/styles';
 
 const styles = theme => ({
-  input: {
-    margin: theme.spacing.unit * 5,
+  textField: {
+    marginLeft: theme.spacing.unit,
+    marginRight: theme.spacing.unit,
+    width: 300,
   },
 });
 
@@ -18,12 +19,15 @@ class SearchBar extends Component {
   render() {
     const { classes } = this.props
     return (
-      <FormControl fullWidth>
-        <Input placeholder="Votre recherche..."
-          className={classes.input}
+       <TextField
+          id="search"
+          label="Search for Medicine"
+          type="search"
+          className={classes.textField}
           value={this.state.term}
-          onChange={event => this.onInputChange(event.target.value)} />
-      </FormControl>
+          onChange={event => this.onInputChange(event.target.value)}
+          margin="normal"
+        />
     )
   }
 

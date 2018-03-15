@@ -1,15 +1,14 @@
 import React, { Component } from 'react';
 import gql from 'graphql-tag';
 import { graphql } from 'react-apollo';
-
 import { withRouter } from 'react-router'
 
 import { withStyles } from 'material-ui/styles';
-import List, { ListItem, ListItemIcon, ListItemText } from 'material-ui/List';
+import List, { ListItem, ListItemText } from 'material-ui/List';
+import Divider from 'material-ui/Divider';
 
 const styles = theme => ({
-  root: {
-    width: '100%',
+  container: {
     backgroundColor: theme.palette.background.paper,
   },
 });
@@ -19,15 +18,19 @@ class MedicineList extends Component {
   renderMedicines() {
     return this.props.data.allMedicines.map(medicine => {
       return(
-        <ListItem button key={medicine.codeCIS} onClick={() => {this.props.history.push(`/${medicine.codeCIS}`)}}>
-          <ListItemText inset primary={medicine.denomination.split(' ', 2).join(' ').replace(',','')} />
-        </ListItem>
+        <div key={medicine.codeCIS}>
+          <ListItem button onClick={() => {this.props.history.push(`/medicine/${medicine.codeCIS}`)}}>
+            <ListItemText inset primary={medicine.denomination.split(' ', 2).join(' ').replace(',','')} />
+          </ListItem>
+          <Divider />
+        </div>
       )
     });
   }
 
   render() {
     const { classes } = this.props;
+
     if (this.props.data.loading) {
       return(
         <div>Loading...</div>
@@ -35,7 +38,7 @@ class MedicineList extends Component {
     }
 
     return(
-      <div className={classes.root}>
+      <div className={classes.container}>
         <List component="nav">
           {this.renderMedicines()}
         </List>
@@ -45,8 +48,8 @@ class MedicineList extends Component {
 }
 
 const allMedicinesQuery = gql`
-  query allMedicinesQuery($name: String!) {
-    allMedicines(name: $name) {
+  query allMedicinesQuery($term: String!) {
+    allMedicines(term: $term) {
       codeCIS
       denomination
     }
@@ -56,9 +59,11 @@ const allMedicinesQuery = gql`
 const ListWithQuery = graphql(allMedicinesQuery, {
   options: (ownProps) => ({
     variables: {
-      name: ownProps.value
+      term: ownProps.value
     }
   })
 })(MedicineList);
 
-export default withRouter(withStyles(styles)(ListWithQuery));
+const ListWithStyle = withStyles(styles)(ListWithQuery)
+
+export default withRouter(ListWithStyle);
