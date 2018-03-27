@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import gql from 'graphql-tag';
 import { graphql } from 'react-apollo';
 
 import { withStyles } from 'material-ui/styles';
@@ -13,26 +12,43 @@ import ExpandMoreIcon from 'material-ui-icons/ExpandMore';
 // import Chip from 'material-ui/Chip';
 
 import Actions from './DetailActions.js';
+import findMedicine from '../graphql/queries/findMedicine';
 
-import { AUTH_TOKEN } from '../constants'
+import { AUTH_TOKEN } from '../constants';
+
+import Loader from '../loaders/MedicineCardLoader';
 
 const styles = theme => ({
+  container: {
+    position: 'relative',
+    height: '90vh',
+  },
   card: {
-    padding: 25,
-    marginBottom: theme.spacing.unit,
+    padding: theme.spacing.unit * 2,
+    margin: theme.spacing.unit,
     borderRadius: theme.spacing.unit / 2,
     display: 'flex',
     justifyContent: 'flex-start',
     position: 'relative',
   },
+  cardLoader: {
+    padding: theme.spacing.unit * 2,
+    margin: theme.spacing.unit,
+    borderRadius: theme.spacing.unit / 2,
+  },
+  cardPannel: {
+    margin: theme.spacing.unit,
+    borderRadius: theme.spacing.unit / 2,
+  },
   content: {
     marginLeft: 15,
   },
-  container: {
-    padding: theme.spacing.unit,
-  },
   cardBottom: {
-
+  },
+  actions: {
+    position: 'absolute',
+    bottom: theme.spacing.unit,
+    right: theme.spacing.unit,
   },
   greenChip: {
     margin: theme.spacing.unit,
@@ -56,24 +72,25 @@ class Detail extends Component {
     const medicine = this.props.data.findMedicine
 
     if (this.props.data.loading) {
-      return <div>Loading...</div>
+      return(
+        <div className={classes.container}>
+          <Paper className={classes.cardLoader}>
+            <Loader />
+          </Paper>
+        </div>
+      )
     }
+
     return(
       <div className={classes.container}>
         <Paper className={classes.card}>
-          <img src="https://picsum.photos/150/225/?image=440" alt='' />
+          <img src="https://picsum.photos/150/225/?image=940" alt='' />
           <div className={classes.content}>
             <Typography variant="body1" gutterBottom>{medicine.denomination.split(' ', 2).join(' ').replace(',','')}</Typography>
             <Typography variant="caption" gutterBottom>{medicine.denomination}</Typography>
-            <div>
-
-            </div>
-            <div className={classes.cardBottom}>
-
-            </div>
           </div>
         </Paper>
-        <ExpansionPanel>
+        <ExpansionPanel className={classes.cardPannel}>
           <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
             <Typography className={classes.heading}>Indications thérapeutiques</Typography>
           </ExpansionPanelSummary>
@@ -84,39 +101,12 @@ class Detail extends Component {
           </ExpansionPanelDetails>
         </ExpansionPanel>
         { authToken &&
-          <Actions medicine={medicine} />
+          <Actions medicine={medicine} className={classes.actions} />
         }
       </div>
     )
   }
 }
-
-const findMedicine = gql`
-  query findMedicine($codeCIS: String!) {
-    findMedicine(codeCIS: $codeCIS) {
-      codeCIS
-      denomination
-      indicationsTherapeutiques
-      formePharmaceutique
-      voiesAdministration
-      etatCommercialisation
-      statutAdministratifAMM
-      presentations {
-        libelle
-        tauxRemboursement
-        prix
-      }
-      compositions {
-        referenceDosage
-        substancesActives {
-          codeSubstance
-          dosageSubstance
-          denominationSubstance
-        }
-      }
-    }
-  }
-`;
 
 const DetailWithQuery = graphql(findMedicine, {
   options: (ownProps) => ({

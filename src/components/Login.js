@@ -1,14 +1,15 @@
 import React, { Component } from 'react'
-import { AUTH_TOKEN, EMAIL } from '../constants'
-
-import gql from 'graphql-tag';
 import { graphql, compose } from 'react-apollo';
+
+import { AUTH_TOKEN, EMAIL } from '../constants'
 
 import { withStyles } from 'material-ui/styles';
 import TextField from 'material-ui/TextField';
 import Button from 'material-ui/Button';
-
 import Typography from 'material-ui/Typography';
+
+import signIn from '../graphql/mutations/signIn';
+import signUp from '../graphql/mutations/signUp';
 
 const styles = theme => ({
   container: {
@@ -222,13 +223,15 @@ class Login extends Component {
         },
       })
 
-      const { token, message } = result.data.signup;
+      const { token, user } = result.data.signUp;
       if (token) {
         this._saveTokenData(token);
-        this.props.history.push(`/`);
+        this._saveUserEmail(user.email);
+        this.props.history.goBack();
       } else {
         this.setState({
-          message
+          emailError: true,
+          passwordsError: true,
         })
       }
     }
@@ -243,34 +246,7 @@ class Login extends Component {
   }
 }
 
-const SIGN_UP_MUTATION = gql`
-  mutation SignUpMutation($email: String!, $password: String!, $password_confirmation: String!) {
-    signup(email: {
-      email: $email
-      password: $password
-      password_confirmation: $password_confirmation
-    }) {
-      token
-      message
-    }
-  }
-`
-
-const SIGN_IN_MUTATION = gql`
-  mutation SignInMutation($email: String!, $password: String!) {
-    signIn(input: {
-      email: $email
-      password: $password
-    }) {
-      token
-      user {
-        email
-      }
-    }
-  }
-`
-
 export default compose(
-  graphql(SIGN_UP_MUTATION, { name: 'signupMutation' }),
-  graphql(SIGN_IN_MUTATION, { name: 'loginMutation' }),
+  graphql(signUp, { name: 'signupMutation' }),
+  graphql(signIn, { name: 'loginMutation' }),
 )(withStyles(styles)(Login))

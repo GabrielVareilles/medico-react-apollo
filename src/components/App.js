@@ -5,6 +5,7 @@ import Detail from './Detail';
 import Login from './Login';
 import Home from './Home';
 import FavoriteList from './FavoriteList';
+import Interactions from './Interactions';
 
 // import { AUTH_TOKEN } from '../constants'
 
@@ -34,6 +35,7 @@ class App extends Component {
             <Route exact path="/" component={Home} />
             <Route exact path="/medicine/:codeCIS" component={Detail} />
             <Route exact path="/favorites" component={FavoriteList}/>
+            <Route exact path="/interactions" component={Interactions}/>
           </Switch>
         </div>
       </div>

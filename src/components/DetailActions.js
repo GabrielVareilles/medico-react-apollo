@@ -1,110 +1,63 @@
 import React, { Component } from 'react';
-import gql from 'graphql-tag';
 
-import { withStyles } from 'material-ui/styles';
-
-import { client } from '../index.js';
+import { client } from '../index';
 
 import Button from 'material-ui/Button';
 import AddIcon from 'material-ui-icons/Add';
-import Snackbar from 'material-ui/Snackbar';
 
-const styles = theme => ({
-  button: {
-    margin: theme.spacing.unit * 2,
-    position: 'absolute',
-    right: theme.spacing.unit *2,
-    bottom: theme.spacing.unit *2,
-  },
-});
+import Alert from './Alert';
+
+import createFavorite from '../graphql/mutations/createFavorite';
+import allFavorites from '../graphql/queries/allFavorites';
 
 class Actions extends Component {
   constructor(props) {
     super(props);
-    this.state = { added: null, open: false, message: null }
+    this.state = { alert: false, message: null }
   }
 
   onClick() {
     // TODO HACK read store before mutation
+    const medicine = this.props.medicine;
     client.mutate({
       mutation: createFavorite,
       variables: {
-        codeCIS: this.props.medicine.codeCIS,
-        denomination: this.props.medicine.denomination,
+        codeCIS: medicine.codeCIS,
+        denomination: medicine.denomination,
       },
       update: (proxy, { data: { createFavorite } }) => {
         const data = proxy.readQuery({ query: allFavorites });
-        //
         const { id } = createFavorite;
-        if (id == null) {
-          this.setState({
-            added: true,
-            open: true,
-            message: 'Déjà dans vos favoris !',
-          })
-        } else {
+        if (id != null) {
           data.allFavorites.push(createFavorite);
           proxy.writeQuery({ query: allFavorites, data });
-          this.setState({
-            added: true,
-            open: true,
-            message: 'Favoris ajouté !',
-          });
-        }
+        };
       },
     })
+      .then(({ data: { createFavorite }}) => {
+        if (createFavorite.id == null) {
+          this.setState({alert: true, message: 'Déjà dans vos favoris !'})
+        } else {
+          this.setState({alert: true, message: `${medicine.denomination.split(' ', 2).join(' ').replace(',','')} ajouté à vos favoris !`})
+        }
+      })
       .catch((error) => {
         // TODO catch errors
 
       });
   }
 
-  handleClose = (event, reason) => {
-    this.setState({ open: false });
-  };
-
   render() {
-    const { classes } = this.props;
     return(
-      <Button variant="fab" color="primary" aria-label="add" className={classes.button} onClick={this.onClick.bind(this)}>
-        <AddIcon />
-        <Snackbar
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'left',
-          }}
-          open={this.state.open}
-          autoHideDuration={2000}
-          onClose={this.handleClose}
-          SnackbarContentProps={{
-            'aria-describedby': 'message-id',
-          }}
-          message={<span id="message-id">{this.state.message}</span>}
-        />
-      </Button>
+      <div style={{position: 'absolute', bottom: 15, right: 15}}>
+        <Button variant="fab" color="primary" aria-label="add" onClick={this.onClick.bind(this)}>
+          <AddIcon />
+        </Button>
+        <Alert open={this.state.alert} message={this.state.message} handleClose={() => this.setState({alert: false})} />
+      </div>
     )
   }
 
 }
-const allFavorites = gql`
-  query allFavorites {
-    allFavorites {
-      id
-      codeCIS
-      denomination
-    }
-  }
-`;
-const createFavorite = gql`
-  mutation createFavorite($codeCIS: String!, $denomination: String!) {
-    createFavorite(codeCIS: $codeCIS, denomination: $denomination) {
-      id
-      codeCIS
-      denomination
-    }
-  }
-`;
 
-const button = withStyles(styles)(Actions);
-
-export default button;
+export default Actions;

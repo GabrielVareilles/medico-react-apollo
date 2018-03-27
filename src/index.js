@@ -39,7 +39,7 @@ const httpLinkWithAuthToken = middlewareAuthLink.concat(httpLink)
 // 4 Instantiates Apollo client with our httpLink
 export const client = new ApolloClient({
   link: httpLinkWithAuthToken,
-  cache: new InMemoryCache()
+  cache: new InMemoryCache(),
 });
 
 // 5 Renders App in DOM with react-dom

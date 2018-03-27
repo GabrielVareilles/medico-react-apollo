@@ -20,7 +20,7 @@ class MedicineList extends Component {
       return(
         <div key={medicine.codeCIS}>
           <ListItem button onClick={() => {this.props.history.push(`/medicine/${medicine.codeCIS}`)}}>
-            <ListItemText inset primary={medicine.denomination.split(' ', 2).join(' ').replace(',','')} />
+            <ListItemText inset primary={medicine.denomination.split(' ', 6).join(' ').replace(',','')} />
           </ListItem>
           <Divider />
         </div>
@@ -36,6 +36,8 @@ class MedicineList extends Component {
         <div>Loading...</div>
       )
     }
+
+    console.log(this.props);
 
     return(
       <div className={classes.container}>
