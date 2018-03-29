@@ -37,8 +37,6 @@ class MedicineList extends Component {
       )
     }
 
-    console.log(this.props);
-
     return(
       <div className={classes.container}>
         <List component="nav">
