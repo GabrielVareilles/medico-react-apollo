@@ -2,7 +2,7 @@ let backendHost;
 
 const hostname = window && window.location && window.location.hostname;
 
-if (hostname === 'chien-geant') {
+if (hostname === 'medico-react.herokuapp.com') {
   backendHost = 'https://medico-gql-api.herokuapp.com';
 }
 
