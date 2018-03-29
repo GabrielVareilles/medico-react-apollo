@@ -14,10 +14,11 @@ import { HttpLink } from 'apollo-link-http'
 import { InMemoryCache } from 'apollo-cache-inmemory'
 import { ApolloLink } from 'apollo-client-preset'
 
+import { API_ROOT } from './api-config';
 
 // 2 Link to our Backend server
 const httpLink = new HttpLink({
-  uri: 'http://localhost:4000/graphql'
+  uri: `${API_ROOT}/graphql`
 });
 
 // 3 Adds token & User email in headers if present
